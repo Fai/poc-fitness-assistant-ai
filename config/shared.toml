@@ -1,0 +1,22 @@
+# Fitness Assistant AI - Shared Configuration
+# This file contains settings shared across all environments
+
+[server]
+# Default server settings
+host = "127.0.0.1"
+port = 8080
+
+[database]
+# Connection pool settings
+max_connections = 10
+
+[jwt]
+# Token expiry settings (can be overridden per environment)
+access_token_expiry_secs = 3600      # 1 hour
+refresh_token_expiry_secs = 604800   # 7 days
+
+[ai]
+# AI/LLM settings
+enabled = false
+ollama_url = "http://localhost:11434"
+model = "llama3.2"

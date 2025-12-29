@@ -1,0 +1,5 @@
+[sqlx]
+offline = true
+
+[sqlx.migrations]
+source = "backend/migrations"

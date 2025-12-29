@@ -1,0 +1,23 @@
+# Fitness Assistant AI - Development Configuration
+
+[server]
+host = "127.0.0.1"
+port = 8080
+
+[database]
+url = "postgres://postgres:postgres@localhost:5432/fitness_assistant"
+max_connections = 10
+
+[redis]
+url = "redis://localhost:6379"
+
+[jwt]
+# WARNING: Change this in production!
+secret = "development-secret-change-in-production"
+access_token_expiry_secs = 3600      # 1 hour
+refresh_token_expiry_secs = 604800   # 7 days
+
+[ai]
+enabled = false
+ollama_url = "http://localhost:11434"
+model = "llama3.2"

@@ -1,0 +1,30 @@
+# Fitness Assistant AI - Production Configuration
+#
+# NOTE: Sensitive values should be set via environment variables:
+#   FA__DATABASE__URL
+#   FA__REDIS__URL
+#   FA__JWT__SECRET
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[database]
+# Set via FA__DATABASE__URL environment variable
+url = ""
+max_connections = 20
+
+[redis]
+# Set via FA__REDIS__URL environment variable
+url = ""
+
+[jwt]
+# Set via FA__JWT__SECRET environment variable
+secret = ""
+access_token_expiry_secs = 900       # 15 minutes
+refresh_token_expiry_secs = 86400    # 1 day
+
+[ai]
+enabled = true
+ollama_url = "http://localhost:11434"
+model = "llama3.2"
