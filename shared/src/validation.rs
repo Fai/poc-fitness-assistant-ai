@@ -184,7 +184,7 @@ pub fn validate_biological_sex(sex: &str) -> Result<(), String> {
 // ============================================================================
 
 /// Map technical field names to user-friendly display labels
-pub fn get_field_display_label(field_name: &str) -> &'static str {
+pub fn get_field_display_label(field_name: &str) -> &str {
     match field_name {
         "weight" => "Current Weight",
         "height" | "height_cm" => "Height",
