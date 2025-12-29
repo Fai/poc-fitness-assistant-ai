@@ -19,6 +19,7 @@ use tower_http::{
 
 mod auth;
 mod health;
+mod nutrition;
 mod profile;
 mod weight;
 
@@ -28,6 +29,7 @@ mod auth_tests;
 mod weight_tests;
 
 pub use auth::auth_routes;
+pub use nutrition::nutrition_routes;
 pub use profile::profile_routes;
 pub use weight::weight_routes;
 
@@ -60,7 +62,7 @@ fn api_routes() -> Router<AppState> {
         .nest("/auth", auth::auth_routes())
         .nest("/weight", weight::weight_routes())
         .nest("/profile", profile::profile_routes())
+        .nest("/nutrition", nutrition::nutrition_routes())
     // Future routes will be nested here:
-    // .nest("/nutrition", nutrition_routes())
     // .nest("/exercise", exercise_routes())
 }

@@ -1,17 +1,12 @@
 //! Profile service - business logic for user profile management
 
 use crate::error::ApiError;
-use crate::repositories::{UpdateUserSettings, UserRepository, WeightRepository};
-use chrono::{NaiveDate, Utc};
-use fitness_assistant_shared::health_metrics::{
-    calculate_bmi_result, calculate_daily_water_ml, calculate_ideal_weight, calculate_tdee_result,
-    classify_body_fat, estimate_body_fat_from_bmi, ActivityLevel, BiologicalSex, HealthProfile,
-};
+use crate::repositories::{UpdateUserSettings, UserRepository};
+use chrono::Utc;
 use fitness_assistant_shared::types::{
-    BmiInfo, BodyFatInfo, EnergyInfo, HealthInsightsResponse, HydrationInfo, IdealWeightInfo,
     UpdateProfileRequest, UpdateSettingsRequest, UserProfileResponse, UserSettingsResponse,
 };
-use fitness_assistant_shared::units::{HeightUnit, WeightUnit};
+use fitness_assistant_shared::units::HeightUnit;
 use fitness_assistant_shared::validation::{
     get_field_display_label, validate_activity_level, validate_biological_sex,
     validate_date_of_birth, validate_height_cm,

@@ -369,3 +369,162 @@ pub struct BodyFatInfo {
     pub category: String,
     pub source: String,
 }
+
+
+// ============================================================================
+// Nutrition Types
+// ============================================================================
+
+/// Food search query parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FoodSearchQuery {
+    pub q: String,
+    #[serde(default)]
+    pub limit: Option<i64>,
+}
+
+/// Food item response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FoodItemResponse {
+    pub id: String,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brand: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub barcode: Option<String>,
+    pub serving_size: f64,
+    pub serving_unit: String,
+    pub calories: f64,
+    pub protein_g: f64,
+    pub carbohydrates_g: f64,
+    pub fat_g: f64,
+    pub fiber_g: f64,
+    pub sugar_g: f64,
+    pub source: String,
+    pub verified: bool,
+}
+
+/// Log food request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogFoodRequest {
+    /// ID of the food item (required unless custom_name is provided)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub food_item_id: Option<String>,
+    /// Number of servings consumed
+    pub servings: f64,
+    /// Meal type: breakfast, lunch, dinner, snack
+    pub meal_type: String,
+    /// When the food was consumed (defaults to now)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumed_at: Option<DateTime<Utc>>,
+    /// Optional notes
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+/// Food log response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FoodLogResponse {
+    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub food_item_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub food_name: Option<String>,
+    pub servings: f64,
+    pub calories: f64,
+    pub protein_g: f64,
+    pub carbohydrates_g: f64,
+    pub fat_g: f64,
+    pub fiber_g: f64,
+    pub meal_type: String,
+    pub consumed_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+/// Daily nutrition summary response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyNutritionResponse {
+    pub date: NaiveDate,
+    pub total_calories: f64,
+    pub total_protein_g: f64,
+    pub total_carbs_g: f64,
+    pub total_fat_g: f64,
+    pub total_fiber_g: f64,
+    pub meal_count: i64,
+    pub logs: Vec<FoodLogResponse>,
+}
+
+/// Create recipe request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateRecipeRequest {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Number of servings the recipe makes
+    pub servings: f64,
+    /// Whether the recipe is public
+    #[serde(default)]
+    pub is_public: bool,
+    /// Initial ingredients (optional)
+    #[serde(default)]
+    pub ingredients: Vec<RecipeIngredientInput>,
+}
+
+/// Recipe ingredient input
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecipeIngredientInput {
+    pub food_item_id: String,
+    pub servings: f64,
+    #[serde(default)]
+    pub sort_order: i32,
+}
+
+/// Recipe response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecipeResponse {
+    pub id: String,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub servings: f64,
+    pub calories_per_serving: f64,
+    pub protein_per_serving: f64,
+    pub carbs_per_serving: f64,
+    pub fat_per_serving: f64,
+    pub fiber_per_serving: f64,
+    pub is_public: bool,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Recipe with ingredients response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecipeDetailResponse {
+    pub recipe: RecipeResponse,
+    pub ingredients: Vec<RecipeIngredientResponse>,
+}
+
+/// Recipe ingredient response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecipeIngredientResponse {
+    pub id: String,
+    pub food_item_id: String,
+    pub food_name: String,
+    pub servings: f64,
+    pub sort_order: i32,
+}
+
+/// Add ingredient to recipe request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddIngredientRequest {
+    pub food_item_id: String,
+    pub servings: f64,
+    #[serde(default)]
+    pub sort_order: i32,
+}
+
+/// Date query parameter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateQuery {
+    pub date: NaiveDate,
+}

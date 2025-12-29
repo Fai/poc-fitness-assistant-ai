@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 13df581adcb643f562e90bdac40cfd16a9ec13b94f6593c3fa0191c701842bda # shrinks to ingredients = [IngredientNutrition { servings: 2.9, calories_per_serving: 83.2, protein_per_serving: 0.1, carbs_per_serving: 0.1, fat_per_serving: 0.1, fiber_per_serving: 0.1 }, IngredientNutrition { servings: 8.8, calories_per_serving: 6.4, protein_per_serving: 0.1, carbs_per_serving: 0.1, fat_per_serving: 0.1, fiber_per_serving: 0.1 }], base_servings = 9

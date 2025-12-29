@@ -4,11 +4,13 @@
 //! repositories and external systems.
 
 pub mod insights;
+pub mod nutrition;
 pub mod profile;
 pub mod user;
 pub mod weight;
 
 pub use insights::HealthInsightsService;
+pub use nutrition::NutritionService;
 pub use profile::ProfileService;
 pub use user::UserService;
 pub use weight::WeightService;
