@@ -14,6 +14,7 @@ use fitness_assistant_shared::units::WeightUnit;
 use fitness_assistant_shared::validation::get_field_display_label;
 use rust_decimal::prelude::ToPrimitive;
 use sqlx::PgPool;
+use tracing::instrument;
 use uuid::Uuid;
 
 /// Health insights service
@@ -24,17 +25,23 @@ impl HealthInsightsService {
     /// 
     /// Returns BMI, TDEE, hydration recommendations, and ideal weight based on
     /// user profile data. Missing fields are reported with user-friendly labels.
+    /// 
+    /// Uses parallel queries for better performance.
+    #[instrument(skip(db), fields(user_id = %user_id))]
     pub async fn get_insights(db: &PgPool, user_id: Uuid) -> Result<HealthInsightsResponse, ApiError> {
-        let settings = UserRepository::get_settings(db, user_id)
-            .await
+        // Execute independent queries in parallel for better performance
+        let (settings_result, weight_result) = tokio::join!(
+            UserRepository::get_settings(db, user_id),
+            WeightRepository::get_latest(db, user_id)
+        );
+        
+        let settings = settings_result
             .map_err(ApiError::Internal)?
             .ok_or_else(|| ApiError::NotFound("Settings not found".to_string()))?;
 
         let weight_unit: WeightUnit = settings.weight_unit.parse().unwrap_or_default();
 
-        let latest_weight = WeightRepository::get_latest(db, user_id)
-            .await
-            .map_err(ApiError::Internal)?;
+        let latest_weight = weight_result.map_err(ApiError::Internal)?;
 
         let weight_kg = latest_weight.map(|w| w.weight_kg.to_f64().unwrap_or(0.0));
         let height_cm = settings.height_cm.map(|h| h.to_f64().unwrap_or(0.0));

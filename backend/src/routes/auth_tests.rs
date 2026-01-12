@@ -22,7 +22,7 @@ mod tests {
     fn create_test_state_sync() -> AppState {
         let config = AppConfig::default();
         let pool = PgPool::connect_lazy("postgres://test:test@localhost:5432/test").unwrap();
-        AppState::new(pool, config)
+        AppState::new(pool, None, config)
     }
 
     /// Generate random invalid tokens

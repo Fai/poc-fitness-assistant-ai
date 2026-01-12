@@ -25,6 +25,9 @@ pub struct AppConfig {
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+    /// Allowed CORS origins (empty = allow any in development)
+    #[serde(default)]
+    pub allowed_origins: Vec<String>,
 }
 
 /// Database configuration
@@ -72,6 +75,7 @@ impl Default for AppConfig {
             server: ServerConfig {
                 host: "127.0.0.1".to_string(),
                 port: 8080,
+                allowed_origins: vec![], // Empty = allow any in development
             },
             database: DatabaseConfig {
                 url: "postgres://postgres:postgres@localhost:5432/fitness_assistant".to_string(),

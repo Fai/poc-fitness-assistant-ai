@@ -12,6 +12,7 @@
 
 use anyhow::Result;
 use fitness_assistant_backend::{config, db, routes, state::AppState};
+use redis::aio::ConnectionManager;
 use tokio::signal;
 use tracing::{error, info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -48,8 +49,11 @@ async fn main() -> Result<()> {
         db::run_migrations(&db_pool).await?;
     }
 
+    // Connect to Redis (optional - gracefully handle connection failure)
+    let redis_conn = connect_redis(&config.redis.url).await;
+
     // Create application state
-    let state = AppState::new(db_pool, config.clone());
+    let state = AppState::new(db_pool, redis_conn, config.clone());
 
     // Build application
     let app = routes::create_router(state);
@@ -67,6 +71,32 @@ async fn main() -> Result<()> {
 
     info!("Server shutdown complete");
     Ok(())
+}
+
+/// Connect to Redis with graceful fallback
+/// 
+/// Returns None if Redis is unavailable, allowing the app to run without caching
+async fn connect_redis(url: &str) -> Option<ConnectionManager> {
+    info!("Connecting to Redis...");
+    
+    match redis::Client::open(url) {
+        Ok(client) => {
+            match ConnectionManager::new(client).await {
+                Ok(conn) => {
+                    info!("Redis connection established");
+                    Some(conn)
+                }
+                Err(e) => {
+                    warn!("Failed to connect to Redis: {}. Caching will be disabled.", e);
+                    None
+                }
+            }
+        }
+        Err(e) => {
+            warn!("Invalid Redis URL: {}. Caching will be disabled.", e);
+            None
+        }
+    }
 }
 
 /// Initialize tracing/logging

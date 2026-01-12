@@ -154,8 +154,8 @@ impl WeightService {
     pub async fn get_weight_history(
         pool: &PgPool,
         user_id: Uuid,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
     ) -> Result<Vec<WeightLog>, ApiError> {
         let records = WeightRepository::get_by_date_range(pool, user_id, start, end)
             .await
@@ -174,6 +174,38 @@ impl WeightService {
             .collect())
     }
 
+    /// Get weight history with pagination
+    /// 
+    /// Returns (logs, total_count) for paginated responses
+    pub async fn get_weight_history_paginated(
+        pool: &PgPool,
+        user_id: Uuid,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<(Vec<WeightLog>, i64), ApiError> {
+        let (records, total_count) = WeightRepository::get_by_date_range_paginated(
+            pool, user_id, start, end, limit, offset
+        )
+            .await
+            .map_err(ApiError::Internal)?;
+
+        let logs = records
+            .into_iter()
+            .map(|r| WeightLog {
+                id: r.id,
+                weight_kg: decimal_to_f64(&r.weight_kg),
+                recorded_at: r.recorded_at,
+                source: r.source,
+                notes: r.notes,
+                is_anomaly: r.is_anomaly,
+            })
+            .collect();
+
+        Ok((logs, total_count))
+    }
+
     /// Calculate weight trend analysis
     ///
     /// # Property 3: Moving Average Calculation
@@ -181,8 +213,8 @@ impl WeightService {
     pub async fn get_weight_trend(
         pool: &PgPool,
         user_id: Uuid,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
     ) -> Result<WeightTrend, ApiError> {
         let records = WeightRepository::get_by_date_range(pool, user_id, start, end)
             .await
@@ -359,8 +391,8 @@ impl WeightService {
     pub async fn get_body_composition_history(
         pool: &PgPool,
         user_id: Uuid,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
     ) -> Result<Vec<BodyCompositionLog>, ApiError> {
         let records = BodyCompositionRepository::get_by_date_range(pool, user_id, start, end)
             .await

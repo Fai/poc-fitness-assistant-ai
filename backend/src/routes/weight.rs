@@ -12,8 +12,8 @@ use axum::{
 };
 use fitness_assistant_shared::types::{
     BodyCompositionResponse, GoalProjectionRequest, GoalProjectionResponse,
-    LogBodyCompositionRequest, LogWeightRequest, WeightHistoryQuery, WeightLogResponse,
-    WeightTrendResponse,
+    LogBodyCompositionRequest, LogWeightRequest, WeightHistoryQuery, WeightHistoryResponse,
+    WeightLogResponse, WeightTrendResponse,
 };
 use fitness_assistant_shared::units::WeightUnit;
 
@@ -83,21 +83,32 @@ async fn log_weight(
     }))
 }
 
-/// GET /api/v1/weight - Get weight history
+/// GET /api/v1/weight - Get weight history with pagination
 /// 
 /// Returns weight entries in user's preferred unit.
+/// Supports pagination with limit (default: 50, max: 100) and offset parameters.
 async fn get_weight_history(
     State(state): State<AppState>,
     auth: AuthUser,
     Query(query): Query<WeightHistoryQuery>,
-) -> Result<Json<Vec<WeightLogResponse>>, ApiError> {
-    let logs = WeightService::get_weight_history(state.db(), auth.user_id, query.start, query.end)
-        .await?;
+) -> Result<Json<WeightHistoryResponse>, ApiError> {
+    // Normalize pagination parameters
+    let query = query.normalize();
+    
+    let (logs, total_count) = WeightService::get_weight_history_paginated(
+        state.db(),
+        auth.user_id,
+        query.start,
+        query.end,
+        query.limit,
+        query.offset,
+    )
+    .await?;
 
     // Get user's preferred unit
     let preferred_unit = get_user_weight_unit(&state, auth.user_id).await;
 
-    let response: Vec<WeightLogResponse> = logs
+    let items: Vec<WeightLogResponse> = logs
         .into_iter()
         .map(|log| {
             let weight_in_preferred = preferred_unit.from_kg(log.weight_kg);
@@ -114,7 +125,15 @@ async fn get_weight_history(
         })
         .collect();
 
-    Ok(Json(response))
+    let has_more = query.offset + (items.len() as i64) < total_count;
+
+    Ok(Json(WeightHistoryResponse {
+        items,
+        total_count,
+        limit: query.limit,
+        offset: query.offset,
+        has_more,
+    }))
 }
 
 /// GET /api/v1/weight/trend - Get weight trend analysis

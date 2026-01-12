@@ -83,13 +83,17 @@ impl WeightRepository {
         Ok(record)
     }
 
-    /// Get weight logs for a user within a date range
+    /// Get weight logs for a user within a date range (optional dates)
     pub async fn get_by_date_range(
         pool: &PgPool,
         user_id: Uuid,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
     ) -> Result<Vec<WeightLogRecord>> {
+        // Use very old/future dates as defaults if not specified
+        let start = start.unwrap_or_else(|| DateTime::from_timestamp(0, 0).unwrap());
+        let end = end.unwrap_or_else(|| Utc::now() + chrono::Duration::days(1));
+        
         let records = sqlx::query_as::<_, WeightLogRecord>(
             r#"
             SELECT id, user_id, weight_kg, recorded_at, source, notes, is_anomaly, created_at
@@ -105,6 +109,57 @@ impl WeightRepository {
         .await?;
 
         Ok(records)
+    }
+
+    /// Get weight logs for a user with pagination
+    /// Returns (records, total_count)
+    pub async fn get_by_date_range_paginated(
+        pool: &PgPool,
+        user_id: Uuid,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<(Vec<WeightLogRecord>, i64)> {
+        // Use very old/future dates as defaults if not specified
+        let start = start.unwrap_or_else(|| DateTime::from_timestamp(0, 0).unwrap());
+        let end = end.unwrap_or_else(|| Utc::now() + chrono::Duration::days(1));
+        
+        // Get total count
+        let count_row: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COUNT(*) as count
+            FROM weight_logs
+            WHERE user_id = $1 AND recorded_at >= $2 AND recorded_at <= $3
+            "#,
+        )
+        .bind(user_id)
+        .bind(start)
+        .bind(end)
+        .fetch_one(pool)
+        .await?;
+        
+        let total_count = count_row.0;
+        
+        // Get paginated records
+        let records = sqlx::query_as::<_, WeightLogRecord>(
+            r#"
+            SELECT id, user_id, weight_kg, recorded_at, source, notes, is_anomaly, created_at
+            FROM weight_logs
+            WHERE user_id = $1 AND recorded_at >= $2 AND recorded_at <= $3
+            ORDER BY recorded_at DESC
+            LIMIT $4 OFFSET $5
+            "#,
+        )
+        .bind(user_id)
+        .bind(start)
+        .bind(end)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await?;
+
+        Ok((records, total_count))
     }
 
     /// Get the most recent weight log for a user
@@ -217,13 +272,17 @@ impl BodyCompositionRepository {
         Ok(record)
     }
 
-    /// Get body composition logs for a user within a date range
+    /// Get body composition logs for a user within a date range (optional dates)
     pub async fn get_by_date_range(
         pool: &PgPool,
         user_id: Uuid,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
+        start: Option<DateTime<Utc>>,
+        end: Option<DateTime<Utc>>,
     ) -> Result<Vec<BodyCompositionLogRecord>> {
+        // Use very old/future dates as defaults if not specified
+        let start = start.unwrap_or_else(|| DateTime::from_timestamp(0, 0).unwrap());
+        let end = end.unwrap_or_else(|| Utc::now() + chrono::Duration::days(1));
+        
         let records = sqlx::query_as::<_, BodyCompositionLogRecord>(
             r#"
             SELECT id, user_id, recorded_at, body_fat_percent, muscle_mass_kg, water_percent, bone_mass_kg, visceral_fat, source, created_at
